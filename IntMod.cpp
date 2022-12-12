@@ -1166,12 +1166,36 @@ void Int::ModSquareK1(Int *a) {
 }
 
 static Int _R2o;                               // R^2 for SecpK1 order modular mult
-static uint64_t MM64o = 0x4B0DFF665588B13FULL; // 64bits lsb negative inverse of SecpK1 order
+static uint64_t MM64o;                         // 64bits lsb negative inverse of SecpK1 order
 static Int *_O;                                // SecpK1 order
+
+/* python to compute the magic numbers for InitK1 and InitR1
+from fastecdsa.curve import P256 as secp256r1
+from fastecdsa.curve import secp256k1
+from ecdsa.numbertheory import inverse_mod
+
+secp256k1_order = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+R2 = (secp256k1_order ** 2) % secp256k1.p
+print(hex(R2).upper().replace('X', 'x'))
+secp256r1_order = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
+assert secp256r1.p == 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
+R2 = (secp256r1_order ** 2) % secp256r1.p
+print(hex(R2).upper().replace('X', 'x'))
+
+print(hex(inverse_mod(-secp256k1_order, 2**64)).upper().replace('X', 'x'))
+print(hex(inverse_mod(-secp256r1_order, 2**64)).upper().replace('X', 'x'))
+*/
 
 void Int::InitK1(Int *order) {
   _O = order;
   _R2o.SetBase16("9D671CD581C69BC5E697F5E45BCD07C6741496C20E7CF878896CF21467D7D140");
+  MM64o = 0x4B0DFF665588B13FULL;
+}
+
+void Int::InitR1(Int* order) {
+  _O = order;
+  _R2o.SetBase16("11961B3BAAED5D054BD3BFCE75FEB51AB3B509153298FF859281502752DCCE44");
+  MM64o = 0xCCD1C8AAEE00BC4Full;
 }
 
 void Int::ModAddK1order(Int *a, Int *b) {

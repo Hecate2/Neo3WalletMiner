@@ -132,6 +132,7 @@ public:
 
   // Specific SecpK1
   static void InitK1(Int *order);
+  static void InitR1(Int *order);
   void ModMulK1(Int *a, Int *b);
   void ModMulK1(Int *a);
   void ModSquareK1(Int *a);

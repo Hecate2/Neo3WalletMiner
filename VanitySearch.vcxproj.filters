@@ -49,6 +49,7 @@
     <ClInclude Include="GPU\GPUWildcard.h">
       <Filter>GPU</Filter>
     </ClInclude>
+    <ClInclude Include="SECP256r1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GPU\GPUGenerate.cpp">
@@ -81,6 +82,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Bech32.cpp" />
     <ClCompile Include="Wildcard.cpp" />
+    <ClCompile Include="SECP256R1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="GPU\GPUEngine.cu">
