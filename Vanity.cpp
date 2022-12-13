@@ -245,6 +245,9 @@ VanitySearch::VanitySearch(Secp256K1 *secp, vector<std::string> &inputPrefixes,s
     case 'B':
       searchType = BECH32;
       break;
+    case 'N':
+      searchType = NEO3;
+      break;
 
     default:
       printf("Invalid start character 1,3 or b, expected");
@@ -362,6 +365,9 @@ bool VanitySearch::initPrefix(std::string &prefix,PREFIX_ITEM *it) {
     std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::tolower);
     if(strncmp(prefix.c_str(), "bc1q", 4) == 0)
       aType = BECH32;
+    break;
+  case 'N':
+    aType = NEO3;
     break;
   }
 
@@ -708,6 +714,9 @@ void VanitySearch::output(string addr,string pAddr,string pAddrHex) {
     case BECH32:
       fprintf(f, "Priv (WIF): p2wpkh:%s\n", pAddr.c_str());
       break;
+    case NEO3:
+      fprintf(f, "Priv (WIF): Neo3:%s\n", pAddr.c_str());
+      break;
     }
     fprintf(f, "Priv (HEX): 0x%s\n", pAddrHex.c_str());
 
@@ -816,6 +825,9 @@ bool VanitySearch::checkPrivKey(string addr, Int &key, int32_t incr, int endomor
       printf("  Addr :%s\n", addr.c_str());
       printf("  Check:%s\n", chkAddr.c_str());
       printf("  Endo:%d incr:%d comp:%d\n", endomorphism, incr, mode);
+      char wif[34];
+      wif[0] = 0x80;
+      printf("  Neo3 private key: %s\n", k.GetBlockStr().c_str());
       return false;
     }
 

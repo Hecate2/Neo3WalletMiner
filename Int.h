@@ -132,7 +132,7 @@ public:
 
   // Specific SecpK1
   static void InitK1(Int *order);
-  static void InitR1(Int *order);
+  static void InitR1(Int *order);  // If InitR1 is called, all K1 functions instead work as R1
   void ModMulK1(Int *a, Int *b);
   void ModMulK1(Int *a);
   void ModSquareK1(Int *a);

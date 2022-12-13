@@ -26,6 +26,7 @@
 #define P2PKH  0
 #define P2SH   1
 #define BECH32 2
+#define NEO3   3
 
 class Secp256K1 {
 
@@ -34,6 +35,7 @@ public:
   Secp256K1();
   ~Secp256K1();
   void Init();
+  void InitR1();
   Point ComputePublicKey(Int *privKey);
   Point NextKey(Point &key);
   void Check();

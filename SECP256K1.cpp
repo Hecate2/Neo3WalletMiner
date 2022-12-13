@@ -56,6 +56,38 @@ void Secp256K1::Init() {
 
 }
 
+void Secp256K1::InitR1() {
+
+    // Prime for the finite field
+    Int P;
+    P.SetBase16("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF");
+
+    // Set up field
+    Int::SetupField(&P);
+
+    // Generator point and order
+    G.x.SetBase16("6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296");
+    G.y.SetBase16("4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5");
+    G.z.SetInt32(1);
+    order.SetBase16("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
+
+    Int::InitR1(&order);
+
+    // Compute Generator table
+    Point N(G);
+    for (int i = 0; i < 32; i++) {
+        GTable[i * 256] = N;
+        N = DoubleDirect(N);
+        for (int j = 1; j < 255; j++) {
+            GTable[i * 256 + j] = N;
+            N = AddDirect(N, GTable[i * 256]);
+        }
+        GTable[i * 256 + 255] = N; // Dummy point for check function
+    }
+
+}
+
+
 Secp256K1::~Secp256K1() {
 }
 
@@ -426,7 +458,15 @@ void Secp256K1::GetHash160(int type,bool compressed,
 
   }
   break;
-
+  case NEO3:
+  {
+      // SSE not supported for now
+      GetHash160(NEO3, compressed, k0, h0);
+      GetHash160(NEO3, compressed, k1, h1);
+      GetHash160(NEO3, compressed, k2, h2);
+      GetHash160(NEO3, compressed, k3, h3);
+  }
+  break;
   }
 
 }
@@ -596,6 +636,29 @@ void Secp256K1::GetHash160(int type, bool compressed, Point &pubKey, unsigned ch
   }
   break;
 
+  case NEO3:
+  {
+      // Compressed public key + contract script: 
+      // DCECh4Uo1OLjnO3yDZ28nloDGvxgy5xHQ0jsiTg0x5IfsLlBVuezJw==
+      // PUSHDATA1 02878528d4e2e39cedf20d9dbc9e5a031afc60cb9c474348ec893834c7921fb0b9
+      // SYSCALL System.Crypto.CheckSig
+      // 0c2102878528d4e2e39cedf20d9dbc9e5a031afc60cb9c474348ec893834c7921fb0b94156e7b327
+      unsigned char contractScript[40];
+      contractScript[0] = 0x0c;
+      contractScript[1] = 0x21;
+      contractScript[2] = pubKey.y.IsEven() ? 0x2 : 0x3;
+      pubKey.x.Get32Bytes(contractScript + 3);
+      contractScript[35] = 0x41;
+      contractScript[36] = 0x56;
+      contractScript[37] = 0xe7;
+      contractScript[38] = 0xb3;
+      contractScript[39] = 0x27;
+
+      sha256(contractScript, 40, shapk);
+      ripemd160_32(shapk, hash);
+  }
+  break;
+
   }
 
 }
@@ -685,6 +748,17 @@ std::vector<std::string> Secp256K1::GetAddress(int type, bool compressed, unsign
     return ret;
   }
   break;
+
+  case NEO3:
+  {
+    // SSE not supported for now
+    ret.push_back(GetAddress(NEO3, compressed, h1));
+    ret.push_back(GetAddress(NEO3, compressed, h2));
+    ret.push_back(GetAddress(NEO3, compressed, h3));
+    ret.push_back(GetAddress(NEO3, compressed, h4));
+    return ret;
+  }
+  break;
   }
 
   memcpy(add1 + 1, h1, 20);
@@ -727,6 +801,18 @@ std::string Secp256K1::GetAddress(int type, bool compressed,unsigned char *hash1
       return std::string(output);
     }
     break;
+
+    case NEO3:
+    {
+        uint8_t sha256_output[64];
+        address[0] = 53;
+        memcpy(address + 1, hash160, 20);
+        sha256(address, 21, sha256_output);
+        sha256(sha256_output, 32, sha256_output + 32);
+        memcpy(address + 21, sha256_output + 60, 4);
+        return EncodeBase58(address, address + 25);
+    }
+    break;
   }
   memcpy(address + 1, hash160,20);
   sha256_checksum(address,21,address+21);
@@ -765,6 +851,20 @@ std::string Secp256K1::GetAddress(int type, bool compressed, Point &pubKey) {
     }
     address[0] = 0x05;
     break;
+
+  case NEO3:
+  {
+    uint8_t h160[20];
+    GetHash160(type, compressed, pubKey, h160);
+    uint8_t sha256_output[64];
+    address[0] = 53;
+    memcpy(address + 1, h160, 20);
+    sha256(address, 21, sha256_output);
+    sha256(sha256_output, 32, sha256_output + 32);
+    memcpy(address + 21, sha256_output + 60, 4);
+    return EncodeBase58(address, address + 25);
+  }
+  break;
   }
 
   GetHash160(type,compressed,pubKey, address + 1);

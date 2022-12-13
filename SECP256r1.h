@@ -26,6 +26,7 @@
 #define P2PKH  0
 #define P2SH   1
 #define BECH32 2
+#define NEO3   3
 
 class Secp256R1 {
 

@@ -531,6 +531,28 @@ void Secp256R1::GetHash160(int type, bool compressed, Point& pubKey, unsigned ch
     }
     break;
 
+    case NEO3:
+    {
+        // Compressed public key + contract script: 
+        // DCECh4Uo1OLjnO3yDZ28nloDGvxgy5xHQ0jsiTg0x5IfsLlBVuezJw==
+        // PUSHDATA1 02878528d4e2e39cedf20d9dbc9e5a031afc60cb9c474348ec893834c7921fb0b9
+        // SYSCALL System.Crypto.CheckSig
+        // 0c2102878528d4e2e39cedf20d9dbc9e5a031afc60cb9c474348ec893834c7921fb0b94156e7b327
+        unsigned char contractScript[40];
+        contractScript[0] = 0x0c;
+        contractScript[1] = 0x21;
+        contractScript[2] = pubKey.y.IsEven() ? 0x2 : 0x3;
+        pubKey.x.Get32Bytes(contractScript + 3);
+        contractScript[35] = 0x41; 
+        contractScript[36] = 0x56; 
+        contractScript[37] = 0xe7; 
+        contractScript[38] = 0xb3; 
+        contractScript[39] = 0x27; 
+
+        sha256(contractScript, 40, shapk);
+        ripemd160_32(shapk, hash);
+    }
+    break;
     }
 
 }

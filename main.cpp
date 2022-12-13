@@ -226,6 +226,9 @@ void outputAdd(string outputFile, int addrType, string addr, string pAddr, strin
   case BECH32:
     fprintf(f, "Priv (WIF): p2wpkh:%s\n", pAddr.c_str());
     break;
+  case NEO3:
+    fprintf(f, "Priv (WIF): Neo3:%s\n", pAddr.c_str());
+    break;
   }
   fprintf(f, "Priv (HEX): 0x%s\n", pAddrHex.c_str());
 
@@ -397,7 +400,7 @@ int main(int argc, char* argv[]) {
   uint64_t rekey = 0;
   Point startPuKey;
   startPuKey.Clear();
-  bool startPubKeyCompressed;
+  bool startPubKeyCompressed = true;
   bool caseSensitive = true;
   bool paranoiacSeed = false;
 
@@ -534,6 +537,8 @@ int main(int argc, char* argv[]) {
       printUsage();
     } else if (a == argc - 1) {
       prefix.push_back(string(argv[a]));
+      if (argv[a][0] == 'N')
+          secp->InitR1();
       a++;
     } else {
       printf("Unexpected %s argument\n",argv[a]);

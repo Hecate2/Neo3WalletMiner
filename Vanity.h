@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include "SECP256k1.h"
+#include "SECP256r1.h"
 #include "GPU/GPUEngine.h"
 #ifdef WIN64
 #include <Windows.h>
